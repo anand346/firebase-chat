@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="Description" content="Chat app login"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="assets/css/login.css">
+<title>Title</title>
+</head>
+<body style = "background-color: #eee;">
+    <div class="container">
+        <div class="form-bg">
+            <div class="container">
+                <div class="row signUp justify-content-center mt-5">
+                    <div class="col-md-offset-4 col-md-4 col-sm-offset-3 col-sm-6">
+                        <div class="form-container">
+                            <h3 class="title">Create Account</h3>
+                            <form class="form-horizontal">
+                                <div class="form-group">
+                                    <input type="text" class="form-control signUpName" placeholder="Display Name">
+                                </div>
+                                <div class="form-group">
+                                    <input type="email" class="form-control signUpEmail" placeholder="Email">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" class="form-control signUPPassword" placeholder="Password">
+                                </div>
+                                <button class="btn signup">Sign up</button><br>
+                                <span>Already  have an account ? <a href="javascript:void(0)" class = "changeToSignIn">Sign In</a></span>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="row signIn justify-content-center mt-5">
+                    <div class="col-md-offset-4 col-md-4 col-sm-offset-3 col-sm-6">
+                        <div class="form-container">
+                            <h3 class="title">Sign In</h3>
+                            <ul class="social-links">
+                                <li><a href="javascript:void(0)"><i class="fab fa-google"></i></a></li>
+                            </ul>
+                            <span class="description">Sign in with google :</span>
+                            <form class="form-horizontal">
+                                <div class="form-group">
+                                    <input type="email" class="form-control signInEmail" placeholder="Email">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" class="form-control signInPassword" placeholder="Password">
+                                </div>
+                                <button class="btn signin">Sign in</button><br>
+                                <span>Don't have an account ? <a href="javascript:void(0)" class = "changeToSignUp">Sign Up</a></span>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-firestore.js"></script>
+    <script src =  "assets/js/firebase.js"></script>
+    <script>
+        $(document).ready(function(){
+        sessionStorage.setItem("authUser",null);
+        function signUp(signUpEmail,signUpPassword,signUpName){
+
+            auth.createUserWithEmailAndPassword(signUpEmail,signUpPassword).
+            then(async (result) => {
+                    
+                // console.log(result.user);return ;
+                var usersCollection = firebase.database().ref('/users');
+                var user = {
+                    avatar : '',
+                    display_name : signUpName,
+                    username : result.user.email.substring(0, result.user.email.lastIndexOf("@")),
+                    email : result.user.email,
+                    status : 'online'
+                }
+                await usersCollection.child(result.user.uid).set(user);
+                verifyEmail(auth.currentUser);
+            }).
+            catch(error => console.log("there is some error"));
+        }
+        function verifyEmail(currentUser){
+            currentUser.sendEmailVerification().then(() =>{
+                console.log("email sent successfully");
+            }).catch(error => {
+                console.log("email verification error");
+            })
+        }
+        function signIn(signInEmail,signInPassword){
+            auth.signInWithEmailAndPassword(signInEmail,signInPassword).
+            then(async (result) => {
+                console.log(result.user);
+                await sessionStorage.setItem("authUser",result.user.uid);
+                var usersCollection = firebase.database().ref('/users');
+                await usersCollection.child(result.user.uid).update({
+                    status : 'online'
+                })
+                if(auth.currentUser.emailVerified){
+                    window.location.href = "index.html";
+                }else{
+                    console.log("your email is not verified , please verify it.");
+                }
+            }).
+            catch(error => console.log("sign in error"));
+        }
+        function signInWithGoogle(){
+            var googleProvider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(googleProvider).
+            then(async (result) => {
+                // console.log(result.user.uid,result.user.email,result.user.displayName,result.user.photoURL);return;
+                var user = {
+                    avatar : result.user.photoURL,
+                    display_name : result.user.displayName,
+                    username : result.user.email.substring(0, result.user.email.lastIndexOf("@")),
+                    email : result.user.email,
+                    status : 'online'
+                }
+                await sessionStorage.setItem("authUser",result.user.uid);
+                var usersCollection = firebase.database().ref('/users');
+                await usersCollection.child(result.user.uid).set(user);
+                if(result.user.emailVerified){
+                    window.location.href = "index.html";
+                }
+            }).
+            catch(error => console.log(error));
+        }
+         $(".signUp").hide();
+         $(".changeToSignUp").on("click",function(){
+             $(".signIn").hide();
+             $(".signUp").show();
+         })
+         $(".changeToSignIn").on("click",function(){
+            $(".signIn").show();
+            $(".signUp").hide();
+         })
+         $(".signin").on("click",function(event){
+            event.preventDefault();
+            var signInEmail = $(".signInEmail").val();
+            var signInPassword = $(".signInPassword").val();
+            signIn(signInEmail,signInPassword);
+         })  
+         $(".signup").on("click",function(event){
+             event.preventDefault();
+             var signUpEmail = $(".signUpEmail").val();
+             var signUpName = $(".signUpName").val();
+             var signUpPassword = $(".signUPPassword").val();
+             signUp(signUpEmail,signUpPassword,signUpName);
+         })
+         $(".fa-google").on("click",function(event){
+            signInWithGoogle();
+         })
+         
+        })
+    </script>
+</body>
+</html>

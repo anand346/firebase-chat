@@ -132,12 +132,12 @@
                 auth.signInWithEmailAndPassword(signInEmail,signInPassword).
                 then(async (result) => {
                     console.log(result.user);
-                    await sessionStorage.setItem("authUser",result.user.uid);
-                    var usersCollection = firebase.database().ref('/users');
-                    await usersCollection.child(result.user.uid).update({
-                        status : 'online'
-                    })
                     if(auth.currentUser.emailVerified){
+                        await sessionStorage.setItem("authUser",result.user.uid);
+                        var usersCollection = firebase.database().ref('/users');
+                        await usersCollection.child(result.user.uid).update({
+                            status : 'online'
+                        })
                         window.location.href = "index.html";
                     }else{
                         alert("your email is not verified , please verify it.");

@@ -232,7 +232,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 individual" data-id = ${snapshot.key} >
                     <div class="d-flex flex-row align-items-center">
                         <div class="image"> <img src="https://www.gravatar.com/avatar/${CryptoJS.MD5(snapshot.val().email)}?d=robohash" width="48">  </div>
-                        <div class="d-flex flex-column line-height ml-2"> <span class="font-weight-bold">${snapshot.val().username}</span> <span>Can i order online?</span>  </div>
+                        <div class="d-flex flex-column line-height ml-2"> <span class="font-weight-bold">${snapshot.val().username}</span> </div>
                     </div> ${snapshot.val().status == 'online' ? '<span class="onlinedot">' : '<span class="offlinedot">'} </span>
                 </div>
                 <hr>

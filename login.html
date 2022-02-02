@@ -69,97 +69,145 @@
     <script src =  "assets/js/firebase.js"></script>
     <script>
         $(document).ready(function(){
-        sessionStorage.setItem("authUser",null);
-        function signUp(signUpEmail,signUpPassword,signUpName){
+            sessionStorage.setItem("authUser",null);
 
-            auth.createUserWithEmailAndPassword(signUpEmail,signUpPassword).
-            then(async (result) => {
-                    
-                // console.log(result.user);return ;
-                var usersCollection = firebase.database().ref('/users');
-                var user = {
-                    avatar : '',
-                    display_name : signUpName,
-                    username : result.user.email.substring(0, result.user.email.lastIndexOf("@")),
-                    email : result.user.email,
-                    status : 'online'
-                }
-                await usersCollection.child(result.user.uid).set(user);
-                verifyEmail(auth.currentUser);
-            }).
-            catch(error => console.log("there is some error"));
-        }
-        function verifyEmail(currentUser){
-            currentUser.sendEmailVerification().then(() =>{
-                console.log("email sent successfully");
-            }).catch(error => {
-                console.log("email verification error");
-            })
-        }
-        function signIn(signInEmail,signInPassword){
-            auth.signInWithEmailAndPassword(signInEmail,signInPassword).
-            then(async (result) => {
-                console.log(result.user);
-                await sessionStorage.setItem("authUser",result.user.uid);
-                var usersCollection = firebase.database().ref('/users');
-                await usersCollection.child(result.user.uid).update({
-                    status : 'online'
-                })
-                if(auth.currentUser.emailVerified){
-                    window.location.href = "index.html";
-                }else{
-                    console.log("your email is not verified , please verify it.");
-                }
-            }).
-            catch(error => console.log("sign in error"));
-        }
-        function signInWithGoogle(){
-            var googleProvider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(googleProvider).
-            then(async (result) => {
-                // console.log(result.user.uid,result.user.email,result.user.displayName,result.user.photoURL);return;
-                var user = {
-                    avatar : result.user.photoURL,
-                    display_name : result.user.displayName,
-                    username : result.user.email.substring(0, result.user.email.lastIndexOf("@")),
-                    email : result.user.email,
-                    status : 'online'
-                }
-                await sessionStorage.setItem("authUser",result.user.uid);
-                var usersCollection = firebase.database().ref('/users');
-                await usersCollection.child(result.user.uid).set(user);
-                if(result.user.emailVerified){
-                    window.location.href = "index.html";
-                }
-            }).
-            catch(error => console.log(error));
-        }
-         $(".signUp").hide();
-         $(".changeToSignUp").on("click",function(){
-             $(".signIn").hide();
-             $(".signUp").show();
-         })
-         $(".changeToSignIn").on("click",function(){
-            $(".signIn").show();
+            
+            //basic on document load utilities starts --
+
             $(".signUp").hide();
-         })
-         $(".signin").on("click",function(event){
-            event.preventDefault();
-            var signInEmail = $(".signInEmail").val();
-            var signInPassword = $(".signInPassword").val();
-            signIn(signInEmail,signInPassword);
-         })  
-         $(".signup").on("click",function(event){
-             event.preventDefault();
-             var signUpEmail = $(".signUpEmail").val();
-             var signUpName = $(".signUpName").val();
-             var signUpPassword = $(".signUPPassword").val();
-             signUp(signUpEmail,signUpPassword,signUpName);
-         })
-         $(".fa-google").on("click",function(event){
+
+            $(".changeToSignUp").on("click",function(){
+                $(".signIn").hide();
+                $(".signUp").show();
+            })
+            $(".changeToSignIn").on("click",function(){
+                $(".signIn").show();
+                $(".signUp").hide();
+            })
+
+            //basic on document load utilities ends --
+
+
+            //function for signup with email and password starts --
+
+            function signUp(signUpEmail,signUpPassword,signUpName){
+
+                auth.createUserWithEmailAndPassword(signUpEmail,signUpPassword).
+                then(async (result) => {
+                        
+                    // console.log(result.user);return ;
+                    var usersCollection = firebase.database().ref('/users');
+                    var user = {
+                        avatar : '',
+                        display_name : signUpName,
+                        username : result.user.email.substring(0, result.user.email.lastIndexOf("@")),
+                        email : result.user.email,
+                        status : 'offline'
+                    }
+                    await usersCollection.child(result.user.uid).set(user);
+                    verifyEmail(auth.currentUser);
+                }).
+                catch(error => console.log("there is some error"));
+            }
+
+            //function for signup with email and password ends --
+
+
+            //function for verify email starts --
+
+            function verifyEmail(currentUser){
+                currentUser.sendEmailVerification().then(() =>{
+                    alert("email sent successfully");
+                }).catch(error => {
+                    alert("email verification error");
+                })
+            }
+
+            //function for verify email ends --
+
+
+            //function for sign in with email and password starts --
+
+            function signIn(signInEmail,signInPassword){
+                auth.signInWithEmailAndPassword(signInEmail,signInPassword).
+                then(async (result) => {
+                    console.log(result.user);
+                    await sessionStorage.setItem("authUser",result.user.uid);
+                    var usersCollection = firebase.database().ref('/users');
+                    await usersCollection.child(result.user.uid).update({
+                        status : 'online'
+                    })
+                    if(auth.currentUser.emailVerified){
+                        window.location.href = "index.html";
+                    }else{
+                        alert("your email is not verified , please verify it.");
+                    }
+                }).
+                catch(error => console.log("sign in error"));
+            }
+
+            //function for sign in with email and password ends --
+
+
+            //function for sign in with google starts --
+
+            function signInWithGoogle(){
+                var googleProvider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(googleProvider).
+                then(async (result) => {
+                    // console.log(result.user.uid,result.user.email,result.user.displayName,result.user.photoURL);return;
+                    var user = {
+                        avatar : result.user.photoURL,
+                        display_name : result.user.displayName,
+                        username : result.user.email.substring(0, result.user.email.lastIndexOf("@")),
+                        email : result.user.email,
+                        status : 'online'
+                    }
+                    await sessionStorage.setItem("authUser",result.user.uid);
+                    var usersCollection = firebase.database().ref('/users');
+                    await usersCollection.child(result.user.uid).set(user);
+                    if(result.user.emailVerified){
+                        window.location.href = "index.html";
+                    }
+                }).
+                catch(error => console.log(error));
+            }
+
+            //function for sign in with google ends --
+
+
+            //triger event when sign in button click starts --
+
+            $(".signin").on("click",function(event){
+                event.preventDefault();
+                var signInEmail = $(".signInEmail").val();
+                var signInPassword = $(".signInPassword").val();
+                signIn(signInEmail,signInPassword);
+            })  
+
+            //triger event when sign in button click ends --
+
+
+            //triger event when sign up button click starts --
+
+            $(".signup").on("click",function(event){
+                event.preventDefault();
+                var signUpEmail = $(".signUpEmail").val();
+                var signUpName = $(".signUpName").val();
+                var signUpPassword = $(".signUPPassword").val();
+                signUp(signUpEmail,signUpPassword,signUpName);
+            })
+
+            //triger event when sign up button click ends --
+
+
+            //triger event when sign in with google button click starts --
+
+            $(".fa-google").on("click",function(event){
             signInWithGoogle();
-         })
+            })
          
+            //triger event when sign in with google button click ends --
         })
     </script>
 </body>

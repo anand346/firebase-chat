@@ -111,6 +111,9 @@
             </div>
             <div class="chat-message clearfix">
               <div class="input-group mb-0">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text emojiButton"><i class="fa fa-smile"></i></span>
+                  </div>
                   <input type="text" class="form-control messageInput" placeholder="Enter text here...">                                    
                   <div class="input-group-prepend">
                     <span class="input-group-text"><i class="fa fa-paper-plane"></i></span>
@@ -130,18 +133,46 @@
     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emoji-button@latest/dist/index.min.js"></script>
     <script src =  "assets/js/firebase.js"></script>
     <script>
       if(sessionStorage.getItem("authUser") == null){
         $(".container").html("");
         window.location.href = "login.html";
       }else{
+        
+        //emoji starts
+
+        const picker = new EmojiButton({
+          position: 'top-start'
+        });
+        const trigger = $('.emojiButton');
+        picker.on('emoji', function(emoji) {
+          var val = $(".messageInput").val();
+          $(".messageInput").val(val + emoji);
+          pikcer.pickerVisible = true;
+        });
+        trigger.on('click', function() {
+          picker.pickerVisible ? picker.hidePicker() : picker.showPicker(trigger);
+        });
+
+        //emoji ends
+
+        
+        //basic variables starts --
+
         const database = firebase.database();
         const usersCollection = database.ref("/users");
         const msgsCollection = database.ref("/msgs");
         var myId = sessionStorage.getItem("authUser");
         $(".chat-list").html("");
         $(".bottom").html("");
+
+        //basic variables starts --
+
+
+        //function for sending message starts -- 
+
         function sendMessage(){
           var message = $(".messageInput").val();
           $(".messageInput").val("");
@@ -157,6 +188,12 @@
           }
           msgsCollection.push().set(msg);
         }
+        
+        //function for sending message ends --
+
+
+        //function for checking whether this message is sent by me or not starts --
+
         function checkMsg(msg){
           if(msg.from == myId){
             return `
@@ -183,6 +220,12 @@
             `
           }
         }
+
+        //function for checking whether this message is sent by me or not ends --
+
+
+        //retrieving all users once when page loads starts --
+
         usersCollection.on('child_added',(snapshot) =>{
             if(!(snapshot.key == sessionStorage.getItem("authUser"))){
               $(".bottom").append(`
@@ -195,7 +238,13 @@
                 <hr>
               `)
             }
-        })    
+        })
+        
+        //retrieving all users once when page loads ends --
+
+
+        //checking whether user is online or not at realtime starts --
+
         usersCollection.on('child_changed',(snapshot) =>{
             if(!(snapshot.key == sessionStorage.getItem("authUser"))){
               $(".individual").each(function(){
@@ -209,7 +258,13 @@
                 }
               })
             }
-        })    
+        })
+        
+        //checking whether user is online or not at realtime ends --
+
+
+        //retrieving messages at realtime starts --
+
         msgsCollection.on("child_added",(snapshot) =>{
             $(".chat-list").append(`
               ${checkMsg(snapshot.val())}
@@ -217,15 +272,33 @@
             var chat_list = document.querySelector(".chat-list");
             chat_list.scrollTop = chat_list.scrollHeight;
         })
+
+        //retrieving messages at realtime ends --
+
+
+        //sending message on enter key press starts --
+
         $('.messageInput').keypress(function(event){	
           var keycode = (event.keyCode ? event.keyCode : event.which);
           if(keycode == '13'){
             sendMessage();
           }
         });
+
+        //sending message on enter key press ends --
+
+
+        //sending message on paper plane click starts --
+
         $(".fa-paper-plane").on("click",function(){
           sendMessage();
         })
+
+        //sending message on paper plane click ends --
+
+
+        //logout button coding  starts --
+
         $(".logout").on("click",function(){
           usersCollection.child(myId).update({
             status : 'offline'
@@ -233,6 +306,8 @@
           sessionStorage.setItem("authUser",null);
           window.location.href = "login.html";
         })
+
+        //logout button coding  ends --
       }
         
       </script>
